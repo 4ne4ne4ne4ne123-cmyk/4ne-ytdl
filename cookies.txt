@@ -1,1 +1,1 @@
-cookies.txt
+# Netscape HTTP Cookie File
