@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, send_file, jsonify
 import yt_dlp
 import os
 import re
@@ -10,8 +10,8 @@ app = Flask(__name__)
 COOKIE_FILE = "cookies.txt"
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36"
 
-def download_audio(url, requested_format):
-    # 🔥 ユーザーが選択したフォーマット（139/249）を最優先
+def download_audio(video_id, requested_format):
+    url = f"https://www.youtube.com/watch?v={video_id}"
     formats_to_try = [requested_format, '139', '249', 'bestaudio']
 
     for fmt in formats_to_try:
@@ -25,14 +25,12 @@ def download_audio(url, requested_format):
             url
         ]
 
-        # Cookieがあれば使う
         if os.path.exists(COOKIE_FILE):
             cmd.insert(1, '--cookies')
             cmd.insert(2, COOKIE_FILE)
 
         try:
             subprocess.run(cmd, check=True, capture_output=True)
-
             downloaded_files = [f for f in os.listdir('.') if f.endswith(('.m4a', '.webm', '.mp4'))]
             if not downloaded_files:
                 continue
@@ -44,28 +42,25 @@ def download_audio(url, requested_format):
                 return mp3_name
 
         except subprocess.CalledProcessError as e:
-            print(f"❌ フォーマット '{fmt}' で失敗: {e.stderr.decode() if e.stderr else '不明なエラー'}")
+            print(f"❌ フォーマット '{fmt}' で失敗: {e.stderr.decode() if e.stderr else '不明'}")
             continue
 
     raise Exception("すべてのフォーマットでダウンロードに失敗しました")
 
-@app.route('/download', methods=['POST'])
+@app.route('/download', methods=['GET'])
 def download():
-    data = request.get_json()
-    url = data.get('url', '').strip()
-    requested_format = data.get('format', '139').strip()
+    video_id = request.args.get('video')
+    fmt = request.args.get('format', '139')
 
-    if not url:
-        return jsonify({'error': 'URLがありません'}), 400
+    if not video_id:
+        return jsonify({'error': 'videoパラメータがありません'}), 400
 
-    match = re.search(r"(?:v=|youtu\.be/|shorts/)([a-zA-Z0-9_-]{11})", url)
-    if not match:
-        return jsonify({'error': '正しいYouTubeのURLではありません'}), 400
+    if not re.match(r'^[a-zA-Z0-9_-]{11}$', video_id):
+        return jsonify({'error': '無効な動画IDです'}), 400
 
     try:
-        filename = download_audio(url, requested_format)
+        filename = download_audio(video_id, fmt)
         return send_file(filename, as_attachment=True)
-
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
