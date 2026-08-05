@@ -1,10 +1,13 @@
 FROM python:3.11-slim
 
-# ffmpeg + nodejs をインストール
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     nodejs \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh
+ENV DENO_INSTALL=/usr/local
 
 WORKDIR /app
 COPY requirements.txt .
