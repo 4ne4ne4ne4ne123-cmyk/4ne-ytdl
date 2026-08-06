@@ -2,7 +2,7 @@ services:
   - type: web
     name: fourne-ytdl
     runtime: docker
-    repo: https://github.com/4ne4ne4ne4ne123-cmyk/4ne-ytdl/
+    repo: https://github.com/4ne4ne4ne4ne123-cmyk/4ne-ytdl
     plan: free
     dockerCommand: docker compose up -d
     envVars:
