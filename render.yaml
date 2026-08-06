@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: fourne-ytdl
+    runtime: image
+    repo: https://github.com/4ne4ne4ne4ne123-cmyk/4ne-ytdl/
+    plan: free
+    dockerCommand: docker compose up
+    envVars:
+      - key: YDL_PROXY
+        value: socks5://warp-proxy:40000
