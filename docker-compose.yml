@@ -1,0 +1,19 @@
+version: '3'
+services:
+  warp-proxy:
+    image: monius/docker-warp-socks:latest
+    container_name: warp-proxy
+    restart: unless-stopped
+    ports:
+      - "40000:40000"
+
+  yt-dlp-api:
+    build: .
+    container_name: yt-dlp-api
+    restart: unless-stopped
+    environment:
+      - YDL_PROXY=socks5://warp-proxy:40000
+    depends_on:
+      - warp-proxy
+    ports:
+      - "8080:8080"
